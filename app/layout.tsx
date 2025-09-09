@@ -24,7 +24,7 @@ export default function RootLayout({
     <>
       <html lang="en" suppressHydrationWarning>
         <head />
-        <body className="min-h-[100dvh]">
+        <body className="min-w-full min-h-full ">
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -43,8 +43,6 @@ export default function RootLayout({
               <Navbar />
               {children}
             </SWRConfig>
-
-            {children}
           </ThemeProvider>
         </body>
       </html>
