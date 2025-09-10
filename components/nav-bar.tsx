@@ -17,7 +17,7 @@ export default function Navbar() {
 
   return (
     <nav className=" flex items-center justify-between px-4 py-2 mx-4 mt-4 border-t-2 border-t-muted border-b-2 rounded-2xl border-b-muted ">
-      <div>
+      <div className="flex flex-row items-center gap-4">
         {components.map((component) => (
           <Link key={component.title} href={component.href} passHref>
             <Button
@@ -28,10 +28,15 @@ export default function Navbar() {
             </Button>
           </Link>
         ))}
-        <Button></Button>
       </div>
 
-      <ModeToggle />
+      <div className="flex items-center gap-4">
+        <div className=" md:flex flex-row items-center gap-2">
+          <Button>Login</Button>
+          <Button>Register</Button>
+        </div>
+        <ModeToggle />
+      </div>
     </nav>
   );
 }

@@ -97,7 +97,7 @@ export default function LoginForm() {
                       <Input
                         type="password"
                         placeholder="********"
-                        autoComplete="new-password"
+                        autoComplete="on"
                         {...field}
                       />
                     </FormControl>
