@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
           message: "Invalid input",
           errors: parsed.error,
         }),
-        { status: 400, headers: { "content-type": "application/json" } }
+        { status: 400, headers: { "content-type": "application/json" } },
       );
     }
 

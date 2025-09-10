@@ -1,5 +1,5 @@
 // File: lib/auth/session.ts
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -22,19 +22,16 @@ export async function comparePasswords(plain: string, hashed: string) {
 
 // ---------- Session token helpers ----------
 function randomToken(bytes = 32) {
-  // base64url, tahmin edilmesi zor
   return crypto.randomBytes(bytes).toString("base64url");
 }
 
 function hashToken(token: string) {
-  // DB'ye sadece hash yazarız
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-// Sunucu tarafında: session oluştur + cookie ayarla
 export async function setSessionForUserId(
   userId: string,
-  ttlMs = DEFAULT_TTL_MS
+  ttlMs = DEFAULT_TTL_MS,
 ) {
   const rawToken = randomToken(32);
   const tokenHash = hashToken(rawToken);
@@ -58,7 +55,6 @@ export async function setSessionForUserId(
   return { token: rawToken, expiresAt };
 }
 
-// Mevcut oturumu doğrula (cookie -> DB kontrol)
 export async function getSession() {
   const raw = (await cookies()).get(COOKIE_NAME)?.value;
   if (!raw) return null;
@@ -71,7 +67,7 @@ export async function getSession() {
       sessionId: sessions.id,
       userId: sessions.userId,
       expiresAt: sessions.expiresAt,
-      user: users, // tüm user kolonları
+      user: users,
     })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
@@ -80,7 +76,6 @@ export async function getSession() {
 
   const row = rows[0];
   if (!row) {
-    // geçersiz/expired ise cookie’i temizleyelim
     (await cookies()).delete(COOKIE_NAME);
     return null;
   }
@@ -89,11 +84,10 @@ export async function getSession() {
     sessionId: row.sessionId,
     userId: row.userId,
     expiresAt: row.expiresAt,
-    user: row.user, // { id, email, username, role, ... }
+    user: row.user,
   };
 }
 
-// Çıkış yap (cookie + DB kaydını sil)
 export async function clearSession() {
   const raw = (await cookies()).get(COOKIE_NAME)?.value;
   if (raw) {

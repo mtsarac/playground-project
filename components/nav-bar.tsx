@@ -1,9 +1,23 @@
-import React from "react";
+"use client";
+import { useEffect } from "react";
 import { ModeToggle } from "./theme-toggle";
 import Link from "next/link";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
+import { redirect } from "next/navigation";
 
 export default function Navbar() {
+  useEffect(() => {
+    fetch("/api/test")
+      .then((res) => res.json())
+      .then((data) => {
+        toast.success(data.message);
+      })
+      .catch((err) => {
+        toast.error("API request failed", { description: err.message });
+        redirect("/");
+      });
+  }, []);
   type ComponentsType = {
     title: string;
     href: string;

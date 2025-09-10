@@ -14,14 +14,12 @@ export async function login(email: string, password: string) {
     .limit(1);
 
   const user = rows[0];
-  // Her iki durumda da aynı mesaj: user enumeration önler
+
   if (!user) throw new Error("Invalid credentials.");
 
-  // BUGFIX: plaintext ile stored hash karşılaştır
   const isPasswordValid = await comparePasswords(password, user.passwordHash);
   if (!isPasswordValid) throw new Error("Invalid credentials.");
 
-  // Session oluştur ve cookie ayarla
   await setSessionForUserId(user.id);
 
   return { id: user.id };
@@ -30,7 +28,7 @@ export async function login(email: string, password: string) {
 export async function register(
   username: string,
   email: string,
-  password: string
+  password: string,
 ) {
   const normalizedEmail = email.toLowerCase().trim();
 

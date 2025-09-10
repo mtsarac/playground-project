@@ -1,6 +1,6 @@
 // File: lib/auth/jwt.ts
-import { SignJWT, jwtVerify, JWTPayload } from "jose";
-import { createSecretKey } from "crypto";
+import { jwtVerify, type JWTPayload, SignJWT } from "jose";
+import { createSecretKey } from "node:crypto";
 
 const ACCESS_TTL = "15m";
 const ISSUER = "your-app";
@@ -28,7 +28,6 @@ export async function signAccessToken(claims: {
     .setAudience(AUDIENCE)
     .setIssuedAt()
     .setExpirationTime(ACCESS_TTL)
-    // İstersen minimal tut, role/email koyma — burada payload’a gömmek istersen:
     .sign(key);
 }
 
@@ -38,9 +37,9 @@ export async function verifyAccessToken(token: string) {
       algorithms: ["HS256"],
       issuer: ISSUER,
       audience: AUDIENCE,
-      clockTolerance: 60, // sn
+      clockTolerance: 60,
     });
-    return payload; // { sub, iat, exp, ... }
+    return payload;
   } catch {
     return null;
   }
