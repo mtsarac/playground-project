@@ -1,4 +1,4 @@
-// db/schema.ts
+//File: lib/db/schema.ts
 import {
   pgTable,
   text,
@@ -13,7 +13,7 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   username: varchar("username", { length: 120 }).notNull().unique(),
-  passwordHash: text("password_hash"),
+  passwordHash: text("password_hash").notNull(),
   role: varchar("role", { length: 20 }).notNull().default("user"),
   emailVerified: boolean("email_verified").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),

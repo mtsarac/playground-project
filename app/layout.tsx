@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Navbar from "@/components/nav-bar";
 import { getUser } from "@/lib/db/queries";
 import { SWRConfig } from "swr";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "This is a playground for Next.js",
@@ -34,14 +35,13 @@ export default function RootLayout({
             <SWRConfig
               value={{
                 fallback: {
-                  // We do NOT await here
-                  // Only components that read this data will suspend
                   "/api/user": getUser(),
                 },
               }}
             >
               <Navbar />
               {children}
+              <Toaster />
             </SWRConfig>
           </ThemeProvider>
         </body>
