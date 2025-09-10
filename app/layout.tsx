@@ -22,30 +22,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
-      <html lang="en" suppressHydrationWarning>
-        <head />
-        <body className="min-w-full min-h-full ">
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body className="min-w-full min-h-full ">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SWRConfig
+            value={{
+              fallback: {
+                "/api/user": getUser(),
+              },
+            }}
           >
-            <SWRConfig
-              value={{
-                fallback: {
-                  "/api/user": getUser(),
-                },
-              }}
-            >
-              <Navbar />
-              {children}
-              <Toaster />
-            </SWRConfig>
-          </ThemeProvider>
-        </body>
-      </html>
-    </>
+            <Navbar />
+            {children}
+            <Toaster />
+          </SWRConfig>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
