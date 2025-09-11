@@ -6,7 +6,7 @@ export default async function HomePage() {
   const user = await getUser();
   return (
     <main className="flex flex-col items-center justify-between gap-8 p-24 text-3xl">
-      <h1>Welcome to the Home Page</h1>
+      <h1>Welcome to the Playground</h1>
       {user ? (
         <div>
           <p className="mb-4 text-lg">You are logged in as {user.username}</p>
