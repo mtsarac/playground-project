@@ -19,7 +19,7 @@ Template for my personal projects
 - TypeScript
 - Zod
 - React Hook Form
-- bcrypt
+- bcryptjs
 - Vercel (for deployment)
 - Bun (as package manager, optional)
 
