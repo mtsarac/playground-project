@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       status: 200,
       headers: { "content-type": "application/json" },
     });
+    // biome-ignore lint/suspicious/noExplicitAny: intentional usage
   } catch (err: any) {
     const msg = err?.message ?? "Something went wrong";
     const status = msg === "Invalid credentials." ? 401 : 500;

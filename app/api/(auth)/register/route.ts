@@ -1,5 +1,5 @@
 // File: app/api/(auth)/register/route.ts
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { register } from "@/lib/auth/auth";
 
@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       status: 201,
       headers: { "content-type": "application/json" },
     });
+    // biome-ignore lint/suspicious/noExplicitAny: intentional usage
   } catch (err: any) {
     const msg = err?.message ?? "Something went wrong";
     const status = msg === "Email already in use." ? 409 : 500;
