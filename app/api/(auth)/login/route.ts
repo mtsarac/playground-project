@@ -1,5 +1,5 @@
 // File: app/api/(auth)/login/route.ts
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { login } from "@/lib/auth/auth";
 
@@ -24,7 +24,6 @@ export async function POST(request: NextRequest) {
 
     const { email, password } = parsed.data;
     const { id } = await login(email, password);
-
     return new Response(JSON.stringify({ ok: true, userId: id }), {
       status: 200,
       headers: { "content-type": "application/json" },

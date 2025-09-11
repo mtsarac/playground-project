@@ -1,17 +1,10 @@
-// File: lib/db/queries.ts
-
-import { unstable_noStore as noStore } from "next/cache";
-
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { getSession } from "@/lib/auth/session";
+import { readSession } from "@/lib/auth/session"; // ⬅️ change import
 
 export async function getUser() {
-  "use server";
-  noStore();
-
-  const session = await getSession();
+  const session = await readSession(); // ⬅️ no cookie mutation here
   if (!session) return null;
 
   const row = await db

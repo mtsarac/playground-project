@@ -28,7 +28,41 @@ function randomToken(bytes = 32) {
 function hashToken(token: string) {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
+// --- read-only session for Server Components ---
+export async function readSession() {
+  const raw = (await cookies()).get(COOKIE_NAME)?.value;
+  if (!raw) return null;
 
+  const tokenHash = hashToken(raw);
+  const now = new Date();
+
+  const rows = await db
+    .select({
+      sessionId: sessions.id,
+      userId: sessions.userId,
+      expiresAt: sessions.expiresAt,
+      user: users,
+    })
+    .from(sessions)
+    .innerJoin(users, eq(users.id, sessions.userId))
+    .where(and(eq(sessions.token, tokenHash), gt(sessions.expiresAt, now)))
+    .limit(1);
+
+  const row = rows[0];
+  if (!row) {
+    // IMPORTANT: do NOT delete cookies here (read-only context)
+    return null;
+  }
+
+  return {
+    sessionId: row.sessionId,
+    userId: row.userId,
+    expiresAt: row.expiresAt,
+    user: row.user,
+  };
+}
+
+// --- mutating helpers (only call from Route Handlers / Server Actions) ---
 export async function setSessionForUserId(
   userId: string,
   ttlMs = DEFAULT_TTL_MS,
@@ -53,39 +87,6 @@ export async function setSessionForUserId(
   });
 
   return { token: rawToken, expiresAt };
-}
-
-export async function getSession() {
-  const raw = (await cookies()).get(COOKIE_NAME)?.value;
-  if (!raw) return null;
-
-  const tokenHash = hashToken(raw);
-  const now = new Date();
-
-  const rows = await db
-    .select({
-      sessionId: sessions.id,
-      userId: sessions.userId,
-      expiresAt: sessions.expiresAt,
-      user: users,
-    })
-    .from(sessions)
-    .innerJoin(users, eq(users.id, sessions.userId))
-    .where(and(eq(sessions.token, tokenHash), gt(sessions.expiresAt, now)))
-    .limit(1);
-
-  const row = rows[0];
-  if (!row) {
-    (await cookies()).delete(COOKIE_NAME);
-    return null;
-  }
-
-  return {
-    sessionId: row.sessionId,
-    userId: row.userId,
-    expiresAt: row.expiresAt,
-    user: row.user,
-  };
 }
 
 export async function clearSession() {
