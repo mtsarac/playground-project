@@ -28,7 +28,7 @@ export async function login(email: string, password: string) {
 export async function register(
   username: string,
   email: string,
-  password: string,
+  password: string
 ) {
   const normalizedEmail = email.toLowerCase().trim();
 
@@ -56,7 +56,6 @@ export async function register(
   const newUser = inserted[0];
   if (!newUser) throw new Error("Failed to create user. Please try again.");
 
-  // Oturum aç: cookie yaz
   await setSessionForUserId(newUser.id);
 
   return { id: newUser.id };

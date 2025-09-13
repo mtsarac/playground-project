@@ -3,8 +3,8 @@ import { jwtVerify, type JWTPayload, SignJWT } from "jose";
 import { createSecretKey } from "node:crypto";
 
 const ACCESS_TTL = "15m";
-const ISSUER = "your-app";
-const AUDIENCE = "your-app-web";
+const ISSUER = "playground";
+const AUDIENCE = "playground-web";
 
 const raw = process.env.SESSION_SECRET;
 if (!raw) throw new Error("SESSION_SECRET is missing");

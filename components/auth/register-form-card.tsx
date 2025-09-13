@@ -55,7 +55,6 @@ export default function RegisterForm() {
       .catch((error) => {
         toast.error(`An error occurred: ${error.message}`);
       });
-    console.log(data);
   }
   return (
     <div>

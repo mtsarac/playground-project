@@ -63,7 +63,6 @@ export default function LoginDialog() {
       .catch((error) => {
         toast.error(`An error occurred: ${error.message}`);
       });
-    console.log(data);
   }
   return (
     <Dialog open={showModal} onOpenChange={setShowModal}>

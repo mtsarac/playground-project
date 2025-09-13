@@ -9,7 +9,7 @@ import { compare, hash } from "bcryptjs";
 
 const COOKIE_NAME = "session";
 const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000; // 24h
-const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS ?? "12");
+const SALT_ROUNDS = 12;
 
 // ---------- Password helpers ----------
 export async function hashPassword(password: string) {
@@ -30,7 +30,8 @@ function hashToken(token: string) {
 }
 // --- read-only session for Server Components ---
 export async function readSession() {
-  const raw = (await cookies()).get(COOKIE_NAME)?.value;
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(COOKIE_NAME)?.value;
   if (!raw) return null;
 
   const tokenHash = hashToken(raw);
@@ -50,7 +51,6 @@ export async function readSession() {
 
   const row = rows[0];
   if (!row) {
-    // IMPORTANT: do NOT delete cookies here (read-only context)
     return null;
   }
 
@@ -62,14 +62,22 @@ export async function readSession() {
   };
 }
 
-// --- mutating helpers (only call from Route Handlers / Server Actions) ---
 export async function setSessionForUserId(
   userId: string,
-  ttlMs = DEFAULT_TTL_MS,
+  ttlMs = DEFAULT_TTL_MS
 ) {
+  const cookieStore = await cookies();
   const rawToken = randomToken(32);
   const tokenHash = hashToken(rawToken);
   const expiresAt = new Date(Date.now() + ttlMs);
+
+  const queryResult = await db
+    .select()
+    .from(sessions)
+    .where(eq(sessions.userId, userId));
+  if (queryResult.length > 0) {
+    await db.delete(sessions).where(eq(sessions.userId, userId));
+  }
 
   await db.insert(sessions).values({
     userId,
@@ -78,9 +86,9 @@ export async function setSessionForUserId(
     createdAt: new Date(),
   });
 
-  (await cookies()).set(COOKIE_NAME, rawToken, {
+  cookieStore.set(COOKIE_NAME, rawToken, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     expires: expiresAt,
@@ -90,13 +98,11 @@ export async function setSessionForUserId(
 }
 
 export async function clearSession() {
-  const raw = (await cookies()).get(COOKIE_NAME)?.value;
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(COOKIE_NAME)?.value;
   if (raw) {
     const tokenHash = hashToken(raw);
     await db.delete(sessions).where(eq(sessions.token, tokenHash));
   }
-  (await cookies()).delete(COOKIE_NAME);
+  cookieStore.delete(COOKIE_NAME);
 }
-
-// (Opsiyonel) expired session temizliği için job yazabilirsin:
-// DELETE FROM sessions WHERE expires_at < now();
