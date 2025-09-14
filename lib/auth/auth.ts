@@ -33,7 +33,7 @@ export async function register(
   const normalizedEmail = email.toLowerCase().trim();
 
   const existing = await db
-    .select({ id: users.id })
+    .select()
     .from(users)
     .where(eq(users.email, normalizedEmail))
     .limit(1);

@@ -91,6 +91,7 @@ export default function RegisterDialog() {
                         id="username"
                         type="text"
                         placeholder="demo"
+                        autoComplete="no"
                         {...field}
                       />
                     </FormControl>
