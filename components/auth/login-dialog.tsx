@@ -86,9 +86,10 @@ export default function LoginDialog() {
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
+                        id="email"
                         type="email"
                         placeholder="demo@example.com"
-                        autoComplete="on"
+                        autoComplete="email"
                         {...field}
                       />
                     </FormControl>
@@ -104,9 +105,10 @@ export default function LoginDialog() {
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input
+                        id="password"
                         type="password"
                         placeholder="********"
-                        autoComplete="on"
+                        autoComplete="current-password"
                         {...field}
                       />
                     </FormControl>

@@ -87,7 +87,12 @@ export default function RegisterDialog() {
                   <FormItem className="grid gap-3">
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="demo" {...field} />
+                      <Input
+                        id="username"
+                        type="text"
+                        placeholder="demo"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -101,8 +106,10 @@ export default function RegisterDialog() {
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
+                        id="email"
                         type="email"
                         placeholder="demo@example.com"
+                        autoComplete="email"
                         {...field}
                       />
                     </FormControl>
@@ -119,8 +126,10 @@ export default function RegisterDialog() {
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input
+                        id="password"
                         type="password"
                         placeholder="********"
+                        autoComplete="new-password"
                         {...field}
                       />
                     </FormControl>
