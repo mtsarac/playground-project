@@ -1,42 +1,47 @@
 // File: app/api/(auth)/register/route.ts
 import type { NextRequest } from "next/server";
-import { z } from "zod";
+import { safeParseAsync } from "zod";
 import { register } from "@/lib/auth/auth";
-
-const registerSchema = z.object({
-  username: z.string().min(3).max(120),
-  email: z.email(),
-  password: z.string().min(8),
-});
+import apiResponse, { registerSchema } from "@/lib/api-tools";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const parsed = registerSchema.safeParse(body);
-    if (!parsed.success) {
-      return new Response(
-        JSON.stringify({
-          message: "Invalid input",
-          errors: parsed.error,
-        }),
-        { status: 400, headers: { "content-type": "application/json" } },
+    const parseResult = await safeParseAsync(registerSchema, body);
+    if (!parseResult.success) {
+      return apiResponse(
+        {
+          ok: false,
+          message: "Invalid Input",
+          error: parseResult.error.issues[0].message, // Returns first error cause
+        },
+        {
+          status: 400,
+          statusText: "Invalid Input",
+        },
       );
     }
 
-    const { username, email, password } = parsed.data;
-    const { id } = await register(username, email, password);
+    const { email, password, username } = parseResult.data;
 
-    return new Response(JSON.stringify({ ok: true, userId: id }), {
-      status: 201,
-      headers: { "content-type": "application/json" },
-    });
-    // biome-ignore lint/suspicious/noExplicitAny: intentional usage
-  } catch (err: any) {
-    const msg = err?.message ?? "Something went wrong";
-    const status = msg === "Email already in use." ? 409 : 500;
-    return new Response(JSON.stringify({ message: msg }), {
-      status,
-      headers: { "content-type": "application/json" },
-    });
+    const { id } = await register(username, email, password);
+    return apiResponse(
+      { message: "User succesfully created", ok: true, other: id },
+      { status: 201, statusText: "Success" },
+    );
+  } catch (error) {
+    const msg =
+      error instanceof Error
+        ? error.message
+        : String(error) || "Something went wrong";
+    const statusCode = msg === "Email already in use." ? 409 : 500;
+    return apiResponse(
+      {
+        error: msg,
+      },
+      {
+        status: statusCode,
+      },
+    );
   }
 }
