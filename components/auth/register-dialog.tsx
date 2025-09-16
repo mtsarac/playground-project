@@ -59,7 +59,7 @@ export default function RegisterDialog() {
           router.refresh();
         } else {
           const errorData = await res.json();
-          toast.error(`Register failed: ${errorData.message}`);
+          toast.error(`Register failed: ${errorData.error}`);
         }
       })
       .catch((error) => {

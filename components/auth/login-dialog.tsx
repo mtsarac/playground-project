@@ -45,7 +45,6 @@ export default function LoginDialog() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        credentials: "include",
       },
       body: JSON.stringify(data),
     })
@@ -56,8 +55,7 @@ export default function LoginDialog() {
           form.reset();
           router.refresh();
         } else {
-          const errorData = await res.json();
-          toast.error(`Login failed: ${errorData.message}`);
+          toast.error(`Login failed: ${(await res.json()).error}`);
         }
       })
       .catch((error) => {
