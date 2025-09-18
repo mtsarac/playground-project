@@ -102,7 +102,7 @@ export default function RegisterDialog(props: RegisterDialogProps) {
                         id="username"
                         type="text"
                         placeholder="demo"
-                        autoComplete="no"
+                        autoComplete="username"
                         {...field}
                       />
                     </FormControl>
