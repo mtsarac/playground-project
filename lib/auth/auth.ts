@@ -1,6 +1,7 @@
 // File: lib/auth/auth.ts
 import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { users, ActivityType } from "@/lib/db/schema";
+import { logActivity } from "@/lib/db/queries";
 import { eq } from "drizzle-orm";
 import {
   comparePasswords,
@@ -12,11 +13,17 @@ import {
 function normEmail(e: string) {
   return e.trim().toLowerCase().normalize("NFKC");
 }
+
 function normUsername(u: string) {
   return u.trim().replace(/\s+/g, " ").normalize("NFKC");
 }
 
-export async function login(email: string, password: string) {
+export async function login(
+  email: string,
+  password: string,
+  ipAddress?: string,
+  userAgent?: string,
+) {
   const normalizedEmail = normEmail(email);
 
   const rows = await db
@@ -26,12 +33,27 @@ export async function login(email: string, password: string) {
     .limit(1);
   const user = rows[0];
 
-  if (!user) throw new Error("Invalid credentials.");
+  if (!user) {
+    // Log failed login attempt (you might want to create a separate table for this)
+    throw new Error("Invalid credentials.");
+  }
 
   const isPasswordValid = await comparePasswords(password, user.passwordHash);
-  if (!isPasswordValid) throw new Error("Invalid credentials.");
+  if (!isPasswordValid) {
+    // Log failed login attempt
+    await logActivity(
+      user.id,
+      `${ActivityType.SIGN_IN}_FAILED`,
+      ipAddress,
+      userAgent,
+    );
+    throw new Error("Invalid credentials.");
+  }
 
   await setSessionForUserId(user.id);
+
+  // Log successful login
+  await logActivity(user.id, ActivityType.SIGN_IN, ipAddress, userAgent);
 
   return { id: user.id };
 }
@@ -39,7 +61,9 @@ export async function login(email: string, password: string) {
 export async function register(
   username: string,
   email: string,
-  password: string
+  password: string,
+  ipAddress?: string,
+  userAgent?: string,
 ) {
   const normalizedEmail = normEmail(email);
   const normalizedUsername = normUsername(username);
@@ -73,12 +97,15 @@ export async function register(
 
   await setSessionForUserId(newUser.id);
 
+  // Log successful registration
+  await logActivity(newUser.id, ActivityType.SIGN_UP, ipAddress, userAgent);
+
   return { id: newUser.id };
 }
 const resetTokens = new Map<string, { userId: string; expires: number }>();
 
 export async function generatePasswordResetToken(
-  email: string
+  email: string,
 ): Promise<string | null> {
   const [user] = await db
     .select({ id: users.id })
@@ -98,7 +125,7 @@ export async function generatePasswordResetToken(
 
 export async function resetPassword(
   token: string,
-  newPassword: string
+  newPassword: string,
 ): Promise<boolean> {
   const tokenData = resetTokens.get(token);
 

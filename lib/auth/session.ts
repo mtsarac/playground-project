@@ -67,7 +67,7 @@ export async function readSession() {
 /** Create/replace a session for a user and set cookie. */
 export async function setSessionForUserId(
   userId: string,
-  ttlMs = DEFAULT_TTL_MS
+  ttlMs = DEFAULT_TTL_MS,
 ) {
   const cookieStore = await cookies();
 

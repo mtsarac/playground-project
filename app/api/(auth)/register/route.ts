@@ -4,9 +4,17 @@ import { safeParseAsync } from "zod";
 import { register } from "@/lib/auth/auth";
 import apiResponse, { registerSchema } from "@/lib/api-tools";
 import { checkRateLimit } from "@/lib/auth/rate-limit";
+import { verifyCSRFToken } from "@/lib/auth/csrf";
 
 export async function POST(request: NextRequest) {
   try {
+    // Extract request information for logging
+    const ipAddress =
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    const userAgent = request.headers.get("user-agent") || "unknown";
+
     const rateLimit = checkRateLimit(request);
     if (!rateLimit.allowed) {
       return apiResponse(
@@ -14,11 +22,20 @@ export async function POST(request: NextRequest) {
           error: "Too many login attempts. Please try again later.",
           ok: false,
         },
-        { status: 429, statusText: "Too Many Requests" }
+        { status: 429, statusText: "Too Many Requests" },
       );
     }
 
     const body = await request.json();
+
+    // Verify CSRF token
+    const csrfToken = request.headers.get("x-csrf-token") || body.csrfToken;
+    if (!csrfToken || !(await verifyCSRFToken(csrfToken))) {
+      return apiResponse(
+        { error: "Invalid CSRF token" },
+        { status: 403, statusText: "Forbidden" },
+      );
+    }
     const parseResult = await safeParseAsync(registerSchema, body);
     if (!parseResult.success) {
       return apiResponse(
@@ -30,16 +47,22 @@ export async function POST(request: NextRequest) {
         {
           status: 400,
           statusText: "Invalid Input",
-        }
+        },
       );
     }
 
     const { email, password, username } = parseResult.data;
 
-    const { id } = await register(username, email, password);
+    const { id } = await register(
+      username,
+      email,
+      password,
+      ipAddress,
+      userAgent,
+    );
     return apiResponse(
       { message: "User succesfully created", ok: true, other: id },
-      { status: 201, statusText: "Success" }
+      { status: 201, statusText: "Success" },
     );
   } catch (error) {
     const msg =
@@ -53,7 +76,7 @@ export async function POST(request: NextRequest) {
       },
       {
         status: statusCode,
-      }
+      },
     );
   }
 }

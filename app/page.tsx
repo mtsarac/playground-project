@@ -1,6 +1,7 @@
 // File: app/page.tsx
 
 import { getUser } from "@/lib/db/queries";
+import ActivityLog from "@/components/activity-log";
 
 export default async function HomePage() {
   const user = await getUser();
@@ -10,6 +11,7 @@ export default async function HomePage() {
       {user ? (
         <div>
           <p className="mb-4 text-lg">You are logged in as {user.username}</p>
+          <ActivityLog />
         </div>
       ) : (
         <div className="flex flex-col gap-4 md:flex-row"></div>

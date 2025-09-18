@@ -23,7 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import type { PropsWithChildren } from "react";
+import { useEffect, useState, type PropsWithChildren } from "react";
 
 export const registerFormSchema = z.object({
   username: z.string().min(3, "Invalid username"),
@@ -37,6 +37,7 @@ type RegisterDialogProps = PropsWithChildren & {
 };
 
 export default function RegisterDialog(props: RegisterDialogProps) {
+  const [csrfToken, setCsrfToken] = useState<string>("");
   const router = useRouter();
   const schema = registerFormSchema;
   const form = useForm<z.infer<typeof schema>>({
@@ -48,19 +49,31 @@ export default function RegisterDialog(props: RegisterDialogProps) {
     },
   });
 
+  // Fetch CSRF token when dialog opens
+  useEffect(() => {
+    if (props.open && !csrfToken) {
+      fetch("/api/csrf-token")
+        .then((res) => res.json())
+        .then((data) => setCsrfToken(data.csrfToken))
+        .catch((error) => console.error("Failed to fetch CSRF token:", error));
+    }
+  }, [props.open, csrfToken]);
+
   function onSubmit(data: z.infer<typeof schema>) {
     fetch("/api/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, csrfToken }),
     })
       .then(async (res) => {
         if (res.ok) {
           toast.success("Registered successfully!");
           props.onOpenChange?.(false);
           form.reset();
+          setCsrfToken(""); // Reset token
           router.refresh();
         } else {
           const errorData = await res.json();

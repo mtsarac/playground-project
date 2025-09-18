@@ -1,7 +1,6 @@
 //File: lib/db/schema.ts
 import { pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm/relations";
-import { db } from ".";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -32,27 +31,17 @@ export const userActivities = pgTable("user_activities", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
-export async function logActivity(
-  userId: string,
-  activity: string,
-  ipAddress?: string,
-  userAgent?: string
-) {
-  await db.insert(userActivities).values({
-    userId,
-    activity,
-    ipAddress,
-    userAgent,
-  });
-}
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
+  activities: many(userActivities),
 }));
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
+export type UserActivity = typeof userActivities.$inferSelect;
+export type NewUserActivity = typeof userActivities.$inferInsert;
 
 export enum ActivityType {
   SIGN_UP = "SIGN_UP",
