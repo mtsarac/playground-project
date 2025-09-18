@@ -67,7 +67,7 @@ export async function readSession() {
 /** Create/replace a session for a user and set cookie. */
 export async function setSessionForUserId(
   userId: string,
-  ttlMs = DEFAULT_TTL_MS,
+  ttlMs = DEFAULT_TTL_MS
 ) {
   const cookieStore = await cookies();
 
@@ -76,8 +76,6 @@ export async function setSessionForUserId(
   const now = Date.now();
   const expiresAt = new Date(now + ttlMs);
 
-  // Tek sorgu → eski oturumları temizle, sonra yeni oluştur
-  // (İstersen sessions.userId’a UNIQUE koyup UPSERT’e de geçebiliriz.)
   await db.delete(sessions).where(eq(sessions.userId, userId));
   await db.insert(sessions).values({
     userId,

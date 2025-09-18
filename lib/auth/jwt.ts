@@ -1,6 +1,6 @@
 // File: lib/auth/jwt.ts
 import { jwtVerify, SignJWT, type JWTPayload } from "jose";
-import { createSecretKey } from "crypto";
+import { createSecretKey } from "node:crypto";
 
 export const runtime = "nodejs";
 
@@ -29,7 +29,7 @@ type AccessClaimsInput = Pick<AccessClaims, "sub" | "role" | "email">;
 // --- sign ---
 export async function signAccessToken(
   claims: AccessClaimsInput,
-  opts?: { ttl?: string | number },
+  opts?: { ttl?: string | number }
 ) {
   return await new SignJWT({
     role: claims.role,
