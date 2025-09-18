@@ -34,7 +34,7 @@ export async function login(email: string, password: string) {
 export async function register(
   username: string,
   email: string,
-  password: string,
+  password: string
 ) {
   const normalizedEmail = normEmail(email);
   const normalizedUsername = normUsername(username);

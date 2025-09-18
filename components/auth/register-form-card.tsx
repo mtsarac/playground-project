@@ -19,37 +19,37 @@ import { useRouter } from "next/navigation";
 
 export const registerFormSchema = z.object({
   username: z.string().min(3, "Invalid username"),
-  email: z.email(),
+  email: z.email("Invalid email"),
   password: z.string().min(8, "Invalid password"),
 });
 
 export default function RegisterForm() {
   const router = useRouter();
-  const form = useForm<z.infer<typeof registerFormSchema>>({
-    resolver: zodResolver(registerFormSchema),
+  const schema = registerFormSchema;
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
     defaultValues: {
       username: "",
       email: "",
       password: "",
     },
   });
-  function onSubmit(data: z.infer<typeof registerFormSchema>) {
+  function onSubmit(data: z.infer<typeof schema>) {
     fetch("/api/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        credentials: "include",
       },
       body: JSON.stringify(data),
     })
       .then(async (res) => {
         if (res.ok) {
-          toast.success("Registered in successfully!");
+          toast.success("Registered successfully!");
           form.reset();
           router.refresh();
         } else {
           const errorData = await res.json();
-          toast.error(`Register failed: ${errorData.message}`);
+          toast.error(`Register failed: ${errorData.error}`);
         }
       })
       .catch((error) => {
