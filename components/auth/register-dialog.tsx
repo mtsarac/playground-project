@@ -18,11 +18,12 @@ import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { useState } from "react";
+import type { PropsWithChildren } from "react";
 
 export const registerFormSchema = z.object({
   username: z.string().min(3, "Invalid username"),
@@ -30,8 +31,12 @@ export const registerFormSchema = z.object({
   password: z.string().min(8, "Invalid password"),
 });
 
-export default function RegisterDialog() {
-  const [showModal, setShowModal] = useState(false);
+type RegisterDialogProps = PropsWithChildren & {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+export default function RegisterDialog(props: RegisterDialogProps) {
   const router = useRouter();
   const schema = registerFormSchema;
   const form = useForm<z.infer<typeof schema>>({
@@ -42,6 +47,7 @@ export default function RegisterDialog() {
       password: "",
     },
   });
+
   function onSubmit(data: z.infer<typeof schema>) {
     fetch("/api/register", {
       method: "POST",
@@ -53,7 +59,7 @@ export default function RegisterDialog() {
       .then(async (res) => {
         if (res.ok) {
           toast.success("Registered successfully!");
-          setShowModal(false);
+          props.onOpenChange?.(false);
           form.reset();
           router.refresh();
         } else {
@@ -66,13 +72,19 @@ export default function RegisterDialog() {
       });
   }
   return (
-    <Dialog open={showModal} onOpenChange={setShowModal}>
+    <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogTrigger asChild>
-        <Button className="cursor-pointer">Register</Button>
+        <div>
+          <Button className="hidden cursor-pointer sm:block">Register</Button>
+          {/* <div className="flex min-w-full sm:hidden">Register</div> */}
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Register to our app</DialogTitle>
+          <DialogDescription className="mb-4">
+            Fill in your details to create a new account.
+          </DialogDescription>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}

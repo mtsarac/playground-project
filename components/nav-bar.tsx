@@ -4,10 +4,11 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import AuthButton from "./auth/auth-button";
 import { getUser } from "@/lib/db/queries";
-import { fLetterToUpperCase } from "@/lib/utils";
+import BurgerMenu from "./burger-menu";
 
 export default async function Navbar() {
   const user = await getUser();
+
   type ComponentsType = {
     title: string;
     href: string;
@@ -20,7 +21,7 @@ export default async function Navbar() {
   ];
 
   return (
-    <nav className=" flex items-center justify-between px-4 py-2 mx-4 mt-4 border-t-2 border-t-muted border-b-2 rounded-2xl border-b-muted ">
+    <nav className=" relative flex items-center justify-between px-4 py-2 mx-4 mt-4 border-t-2 border-t-muted border-b-2 rounded-2xl border-b-muted ">
       <div className="flex flex-row items-center gap-4">
         {components.map((component) => (
           <Link
@@ -40,26 +41,16 @@ export default async function Navbar() {
       </div>
 
       <div className="flex items-center gap-4">
-        {user ? (
-          <div className=" md:flex flex-row items-center gap-2">
-            <div className="border-2 border-muted px-2 py-1 rounded-lg hover:bg-accent">
-              <div>Welcome to the system</div>
-              <div className="font-bold text-lg">
-                {fLetterToUpperCase(user.username)}
-              </div>
-            </div>
-            <form action="/api/logout" method="POST">
-              <Button variant={"destructive"} type="submit">
-                Logout
-              </Button>
-            </form>
+        <div className="">
+          <div className="sm:hidden border-2 border-muted p-2 rounded-lg hover:bg-accent">
+            <BurgerMenu user={user} />
           </div>
-        ) : (
-          <div className=" md:flex flex-row items-center gap-2">
+          <div className="hidden sm:flex sm:flex-row items-center gap-2">
             <AuthButton type="login" />
             <AuthButton type="register" />
           </div>
-        )}
+        </div>
+
         <ModeToggle />
       </div>
     </nav>

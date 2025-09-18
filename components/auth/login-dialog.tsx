@@ -18,19 +18,24 @@ import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { useState } from "react";
+import type { PropsWithChildren } from "react";
 
 export const loginFormSchema = z.object({
   email: z.email(),
   password: z.string().min(8, "Invalid password"),
 });
 
-export default function LoginDialog() {
-  const [showModal, setShowModal] = useState(false);
+type LoginDialogProps = PropsWithChildren & {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+export default function LoginDialog(props: LoginDialogProps) {
   const schema = loginFormSchema;
   const router = useRouter();
   const form = useForm<z.infer<typeof schema>>({
@@ -40,6 +45,7 @@ export default function LoginDialog() {
       password: "",
     },
   });
+
   function onSubmit(data: z.infer<typeof schema>) {
     fetch("/api/login", {
       method: "POST",
@@ -51,7 +57,7 @@ export default function LoginDialog() {
       .then(async (res) => {
         if (res.ok) {
           toast.success("Logged in successfully!");
-          setShowModal(false);
+          props.onOpenChange?.(false);
           form.reset();
           router.refresh();
         } else {
@@ -63,13 +69,19 @@ export default function LoginDialog() {
       });
   }
   return (
-    <Dialog open={showModal} onOpenChange={setShowModal}>
+    <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogTrigger asChild>
-        <Button className="cursor-pointer">Login</Button>
+        <div>
+          <Button className="hidden cursor-pointer sm:block">Login</Button>
+          {/* <div className="w-full sm:hidden">Login</div> */}
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="mb-4">Login</DialogTitle>
+          <DialogTitle>Login</DialogTitle>
+          <DialogDescription className="mb-4">
+            Enter your email and password to login.
+          </DialogDescription>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
