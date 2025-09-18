@@ -6,6 +6,7 @@ import Navbar from "@/components/nav-bar";
 import { getUser } from "@/lib/db/queries";
 import { SWRConfig } from "swr";
 import { Toaster } from "@/components/ui/sonner";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "This is a playground for Next.js",
@@ -40,6 +41,7 @@ export default function RootLayout({
           >
             <Navbar />
             {children}
+            <SpeedInsights />
             <Toaster richColors />
           </SWRConfig>
         </ThemeProvider>
