@@ -3,9 +3,21 @@ import type { NextRequest } from "next/server";
 import { safeParseAsync } from "zod";
 import { login } from "@/lib/auth/auth";
 import apiResponse, { loginFormSchema } from "@/lib/api-tools";
+import { checkRateLimit } from "@/lib/auth/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimit = checkRateLimit(request);
+    if (!rateLimit.allowed) {
+      return apiResponse(
+        {
+          error: "Too many login attempts. Please try again later.",
+          ok: false,
+        },
+        { status: 429, statusText: "Too Many Requests" }
+      );
+    }
+
     const body = await request.json();
     const parseResult = await safeParseAsync(loginFormSchema, body);
     if (!parseResult.success) {

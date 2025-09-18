@@ -1,6 +1,7 @@
 //File: lib/db/schema.ts
 import { pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm/relations";
+import { db } from ".";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -22,7 +23,28 @@ export const sessions = pgTable("sessions", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
+export const userActivities = pgTable("user_activities", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  activity: varchar("activity", { length: 50 }).notNull(),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: varchar("user_agent", { length: 500 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
 
+export async function logActivity(
+  userId: string,
+  activity: string,
+  ipAddress?: string,
+  userAgent?: string
+) {
+  await db.insert(userActivities).values({
+    userId,
+    activity,
+    ipAddress,
+    userAgent,
+  });
+}
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
 }));

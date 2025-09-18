@@ -20,13 +20,13 @@ export async function comparePasswords(plain: string, hashed: string) {
 /** ------------ Web Crypto helpers (Edge-safe) ------------ */
 const enc = new TextEncoder();
 
-function randomToken(bytes = 32): string {
+export function randomToken(bytes = 32): string {
   const arr = new Uint8Array(bytes);
   crypto.getRandomValues(arr);
   return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function sha256Hex(input: string): Promise<string> {
+export async function sha256Hex(input: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", enc.encode(input));
   const bytes = new Uint8Array(digest);
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
