@@ -27,7 +27,7 @@ export default function BurgerMenu(props: BurgerMenuProps) {
   const [registerOpen, setRegisterOpen] = useState(false);
 
   return (
-    <div className="">
+    <div className="sm:hidden">
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           <Menu className="cursor-pointer" />
@@ -39,7 +39,7 @@ export default function BurgerMenu(props: BurgerMenuProps) {
               <DropdownMenuItem className="w-full justify-center">
                 Hello, {props.user.username}!
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem className="p-0 mt-2 w-full justify-center">
                 <form action="/api/logout" method="post">
                   <Button
                     variant={"destructive"}
