@@ -4,6 +4,7 @@ import { getUser } from "@/lib/db/queries";
 
 export default async function HomePage() {
   const user = await getUser();
+
   return (
     <div className="flex flex-col items-center justify-between gap-8 p-24 text-3xl">
       <h1>Welcome to the Playground</h1>

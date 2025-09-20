@@ -1,11 +1,11 @@
 // File: components/nav-bar.tsx
-import { ModeToggle } from "./theme-toggle";
-import Link from "next/link";
-import { Button } from "./ui/button";
-import AuthButton from "./auth/auth-button";
 import { getUser } from "@/lib/db/queries";
 import { fLetterToUpperCase } from "@/lib/utils";
+import Link from "next/link";
+import AuthButton from "./auth/auth-button";
 import BurgerMenu from "./burger-menu";
+import { ModeToggle } from "./theme-toggle";
+import { Button } from "./ui/button";
 
 export default async function Navbar() {
   const user = await getUser();

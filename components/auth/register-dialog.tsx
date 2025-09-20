@@ -1,18 +1,6 @@
 // File: components/auth/register-form.tsx
 "use client";
-import z from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
@@ -24,12 +12,8 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { useEffect, useState, type PropsWithChildren } from "react";
-
-export const registerFormSchema = z.object({
-  username: z.string().min(3, "Invalid username"),
-  email: z.email(),
-  password: z.string().min(8, "Invalid password"),
-});
+import ReusableAuth from "./reusable-auth-form";
+import type { loginFormType, registerFormType } from "@/lib/api-tools";
 
 type RegisterDialogProps = PropsWithChildren & {
   open: boolean;
@@ -38,138 +22,105 @@ type RegisterDialogProps = PropsWithChildren & {
 
 export default function RegisterDialog(props: RegisterDialogProps) {
   const [csrfToken, setCsrfToken] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingToken, setIsLoadingToken] = useState(false);
   const router = useRouter();
-  const schema = registerFormSchema;
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      username: "",
-      email: "",
-      password: "",
-    },
-  });
 
-  // Fetch CSRF token when dialog opens
   useEffect(() => {
-    if (props.open && !csrfToken) {
+    if (props.open) {
+      setIsLoadingToken(true);
       fetch("/api/csrf-token")
         .then((res) => res.json())
-        .then((data) => setCsrfToken(data.csrfToken))
-        .catch((error) => console.error("Failed to fetch CSRF token:", error));
+        .then((data) => {
+          setCsrfToken(data.csrfToken);
+          setIsLoadingToken(false);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch CSRF token:", error);
+          toast.error("Security initialization failed. Please try again.");
+          setIsLoadingToken(false);
+        });
+    } else {
+      setCsrfToken("");
+      setIsLoadingToken(false);
+      setIsLoading(false);
     }
-  }, [props.open, csrfToken]);
+  }, [props.open]);
 
-  function onSubmit(data: z.infer<typeof schema>) {
-    fetch("/api/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken,
-      },
-      body: JSON.stringify({ ...data, csrfToken }),
-    })
-      .then(async (res) => {
-        if (res.ok) {
-          toast.success("Registered successfully!");
-          props.onOpenChange?.(false);
-          form.reset();
-          setCsrfToken(""); // Reset token
-          router.refresh();
-        } else {
-          const errorData = await res.json();
-          toast.error(`Register failed: ${errorData.error}`);
-        }
-      })
-      .catch((error) => {
-        toast.error(`An error occurred: ${error.message}`);
+  async function onSubmit(data: registerFormType) {
+    if (!csrfToken) {
+      toast.error("Security token missing. Please refresh and try again.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+        },
+        body: JSON.stringify({ ...data, csrfToken }),
       });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Account created successfully! Welcome aboard! 🎉");
+        props.onOpenChange?.(false);
+        setCsrfToken("");
+        router.refresh();
+      } else {
+        toast.error(result.error || "Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error("Network error. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
+    }
   }
+
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogTrigger asChild>
         <div>
           <Button className="hidden cursor-pointer sm:block">Register</Button>
-          {/* <div className="flex min-w-full sm:hidden">Register</div> */}
         </div>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Register to our app</DialogTitle>
+          <DialogTitle>Create Your Account</DialogTitle>
           <DialogDescription className="mb-4">
-            Fill in your details to create a new account.
+            Join us today! Fill in your details to get started.
           </DialogDescription>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              onReset={() => form.reset()}
-              className="flex flex-col gap-6"
-            >
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem className="grid gap-3">
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="username"
-                        type="text"
-                        placeholder="demo"
-                        autoComplete="username"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="grid gap-3">
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="demo@example.com"
-                        autoComplete="email"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem className="grid gap-3">
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="********"
-                        autoComplete="new-password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Register
-                </Button>
-              </div>
-            </form>
-          </Form>
         </DialogHeader>
+
+        {isLoadingToken ? (
+          <div className="flex justify-center py-8">
+            <div className="text-sm text-muted-foreground">
+              Initializing security...
+            </div>
+          </div>
+        ) : (
+          <div className="relative">
+            <ReusableAuth
+              type="register"
+              onSubmit={
+                onSubmit as (data: registerFormType | loginFormType) => void
+              }
+            />
+            {isLoading && (
+              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+                <div className="text-sm text-muted-foreground">
+                  Creating your account...
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

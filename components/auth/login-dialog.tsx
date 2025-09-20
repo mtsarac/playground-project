@@ -1,20 +1,11 @@
 // File: components/auth/login-form.tsx
 "use client";
-import * as z from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import type { loginFormType } from "@/lib/api-tools";
 import { useRouter } from "next/navigation";
+import type { PropsWithChildren } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -23,13 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import type { PropsWithChildren } from "react";
-import { useEffect, useState } from "react";
-
-export const loginFormSchema = z.object({
-  email: z.email(),
-  password: z.string().min(8, "Invalid password"),
-});
+import ReusableAuth from "./reusable-auth-form";
 
 type LoginDialogProps = PropsWithChildren & {
   open: boolean;
@@ -38,55 +23,60 @@ type LoginDialogProps = PropsWithChildren & {
 
 export default function LoginDialog(props: LoginDialogProps) {
   const [csrfToken, setCsrfToken] = useState<string>("");
-  const schema = loginFormSchema;
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
 
-  // Fetch CSRF token when dialog opens
   useEffect(() => {
-    if (props.open && !csrfToken) {
+    if (props.open) {
       fetch("/api/csrf-token")
         .then((res) => res.json())
         .then((data) => setCsrfToken(data.csrfToken))
-        .catch((error) => console.error("Failed to fetch CSRF token:", error));
+        .catch((error) => {
+          console.error("Failed to fetch CSRF token:", error);
+          toast.error("Security initialization failed. Please try again.");
+        });
+    } else {
+      setCsrfToken("");
+      setIsLoading(false);
     }
-  }, [props.open, csrfToken]);
+  }, [props.open]);
 
-  function onSubmit(data: z.infer<typeof schema>) {
+  // ✅ FIXED: Consistent async handling and loading states
+  const handleSubmit = async (data: loginFormType) => {
     if (!csrfToken) {
       toast.error("Security token missing. Please refresh and try again.");
       return;
     }
 
-    fetch("/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken,
-      },
-      body: JSON.stringify({ ...data, csrfToken }),
-    })
-      .then(async (res) => {
-        if (res.ok) {
-          toast.success("Logged in successfully!");
-          props.onOpenChange?.(false);
-          form.reset();
-          setCsrfToken(""); // Reset token
-          router.refresh();
-        } else {
-          toast.error(`Login failed: ${(await res.json()).error}`);
-        }
-      })
-      .catch((error) => {
-        toast.error(`An error occurred: ${error.message}`);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+        },
+        body: JSON.stringify({ ...data, csrfToken }),
       });
-  }
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Logged in successfully!");
+        props.onOpenChange?.(false);
+        setCsrfToken("");
+        router.refresh();
+      } else {
+        toast.error(result.error || "Login failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Network error. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
@@ -101,58 +91,18 @@ export default function LoginDialog(props: LoginDialogProps) {
           <DialogDescription className="mb-4">
             Enter your email and password to login.
           </DialogDescription>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              onReset={() => form.reset()}
-              className="flex flex-col gap-6"
-            >
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="grid gap-3">
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="demo@example.com"
-                        autoComplete="email"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem className="grid gap-3">
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="********"
-                        autoComplete="current-password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={!csrfToken}>
-                  {csrfToken ? "Login" : "Loading..."}
-                </Button>
-              </div>
-            </form>
-          </Form>
         </DialogHeader>
+
+        <div className="relative">
+          <ReusableAuth type="login" onSubmit={handleSubmit} />
+          {isLoading && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center rounded-md">
+              <div className="text-sm text-muted-foreground">
+                Signing you in...
+              </div>
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

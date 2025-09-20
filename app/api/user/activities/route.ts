@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUserActivities } from "@/lib/db/queries";
 
-export async function POST(_request: Request) {
+export async function GET(_request: Request) {
   try {
     const activities = await getUserActivities();
     return NextResponse.json({ activities });
