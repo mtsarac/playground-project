@@ -1,17 +1,9 @@
 import { NextResponse } from "next/server";
 import { getUserActivities } from "@/lib/db/queries";
 
-export async function POST(request: Request) {
+export async function POST(_request: Request) {
   try {
-    const reqBody = await request.json();
-    const userId = reqBody.userId;
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
-    }
-    const activities = await getUserActivities(userId);
+    const activities = await getUserActivities();
     return NextResponse.json({ activities });
   } catch (_error) {
     return NextResponse.json(

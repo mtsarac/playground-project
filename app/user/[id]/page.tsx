@@ -12,7 +12,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           <p className="">User id: {user.id}</p>
           <p className="">User email: {user.email}</p>
           <p className="">User role: {user.role}</p>
-          <ActivityLog userId={user.id} />
+          <ActivityLog />
         </div>
       )}
     </div>
