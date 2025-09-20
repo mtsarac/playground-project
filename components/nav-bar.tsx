@@ -18,11 +18,20 @@ export default async function Navbar() {
     { title: "Home", href: "/", description: "Go to home page" },
     { title: "About", href: "/about", description: "Learn more about us" },
     { title: "Contact", href: "/contact", description: "Get in touch" },
+    ...(user
+      ? [
+          {
+            title: "User",
+            href: `/user/${user.id}`,
+            description: "View user profile",
+          },
+        ]
+      : []),
   ];
 
   return (
-    <nav className=" flex items-center justify-between px-4 py-2 mx-4 mt-4 border-t-2 border-t-muted border-b-2 rounded-2xl border-b-muted ">
-      <div className="flex flex-row items-center gap-4">
+    <nav className="max-w-3xl mx-auto flex items-center justify-between px-4 py-4 mt-4 border-2 border-muted rounded-2xl ">
+      <div className="flex flex-row items-center gap-x-4">
         {components.map((component) => (
           <Link
             key={component.title}
@@ -40,7 +49,7 @@ export default async function Navbar() {
         ))}
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-x-4">
         {user ? (
           <div className="hidden sm:flex flex-row items-center gap-2">
             <div className="border-2 border-muted px-2 py-1 rounded-lg hover:bg-accent">

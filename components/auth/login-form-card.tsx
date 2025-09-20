@@ -1,6 +1,6 @@
 // File: components/auth/login-form.tsx
 "use client";
-import * as z from "zod";
+import type * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { loginFormSchema } from "@/lib/api-tools";
 
-export const loginFormSchema = z.object({
-  email: z.email(),
-  password: z.string().min(8, "Invalid password"),
-});
+// export const loginFormSchema = z.object({
+//   email: z.email(),
+//   password: z.string().min(8, "Invalid password"),
+// });
 
 export default function LoginForm() {
   const schema = loginFormSchema;

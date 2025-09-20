@@ -1,22 +1,33 @@
 "use client";
-import { useEffect, useState } from "react";
+import { type PropsWithChildren, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
+import type { UserActivity } from "@/lib/db/schema";
 
-type Activity = {
+/* type Activity = {
   id: string;
   activity: string;
   ipAddress: string | null;
   userAgent: string | null;
   createdAt: Date | null;
+}; */
+
+type ActivityLogProps = PropsWithChildren & {
+  userId: string;
 };
 
-export default function ActivityLog() {
-  const [activities, setActivities] = useState<Activity[]>([]);
+export default function ActivityLog(props: ActivityLogProps) {
+  const [activities, setActivities] = useState<UserActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/user/activities")
+    fetch("/api/user/activities", {
+      body: JSON.stringify({ userId: props.userId }),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         setActivities(data.activities || []);
@@ -26,7 +37,7 @@ export default function ActivityLog() {
         console.error("Failed to fetch activities:", error);
         setLoading(false);
       });
-  }, []);
+  }, [props.userId]);
 
   const getActivityColor = (activity: string) => {
     if (activity.includes("SIGN_IN")) return "bg-green-100 text-green-800";
