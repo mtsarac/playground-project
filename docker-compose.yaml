@@ -42,7 +42,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    # Only run migrator; we DO NOT generate inside the container
     command: ["bun", "run", "scripts/migrate.ts"]
     restart: "no"
 

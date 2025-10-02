@@ -24,7 +24,6 @@
     ENV NODE_ENV=production
         
     # Minimal deps just for the migrator
-    # (Pin versions to match your root package.json if you want)
     RUN printf '%s\n' \
     '{ "name":"migrator","type":"module",' \
     '  "dependencies":{"drizzle-orm":"^0.44.5","pg":"^8.16.3"} }' \

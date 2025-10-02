@@ -1,11 +1,10 @@
+// File: lib/db/queries.ts
 import { and, eq, isNull, desc, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users, userActivities } from "@/lib/db/schema";
 import { readSession } from "@/lib/auth/session";
 
 // --- get current user for Server Components ---
-// This function retrieves the currently authenticated user's details based on the session cookie.
-// It returns the user, or null if no valid session exists.
 
 export async function getUser() {
   const session = await readSession();
@@ -96,7 +95,7 @@ export async function logActivity(
   userId: string,
   activity: string,
   ipAddress?: string,
-  userAgent?: string,
+  userAgent?: string
 ) {
   await db.insert(userActivities).values({
     userId,

@@ -22,7 +22,7 @@ export async function login(
   email: string,
   password: string,
   ipAddress?: string,
-  userAgent?: string,
+  userAgent?: string
 ) {
   const normalizedEmail = normEmail(email);
 
@@ -34,25 +34,22 @@ export async function login(
   const user = rows[0];
 
   if (!user) {
-    // Log failed login attempt (you might want to create a separate table for this)
     throw new Error("Invalid credentials.");
   }
 
   const isPasswordValid = await comparePasswords(password, user.passwordHash);
   if (!isPasswordValid) {
-    // Log failed login attempt
     await logActivity(
       user.id,
       `${ActivityType.SIGN_IN}_FAILED`,
       ipAddress,
-      userAgent,
+      userAgent
     );
     throw new Error("Invalid credentials.");
   }
 
   await setSessionForUserId(user.id);
 
-  // Log successful login
   await logActivity(user.id, ActivityType.SIGN_IN, ipAddress, userAgent);
 
   return { id: user.id };
@@ -63,7 +60,7 @@ export async function register(
   email: string,
   password: string,
   ipAddress?: string,
-  userAgent?: string,
+  userAgent?: string
 ) {
   const normalizedEmail = normEmail(email);
   const normalizedUsername = normUsername(username);
@@ -105,7 +102,7 @@ export async function register(
 const resetTokens = new Map<string, { userId: string; expires: number }>();
 
 export async function generatePasswordResetToken(
-  email: string,
+  email: string
 ): Promise<string | null> {
   const [user] = await db
     .select({ id: users.id })
@@ -125,7 +122,7 @@ export async function generatePasswordResetToken(
 
 export async function resetPassword(
   token: string,
-  newPassword: string,
+  newPassword: string
 ): Promise<boolean> {
   const tokenData = resetTokens.get(token);
 
