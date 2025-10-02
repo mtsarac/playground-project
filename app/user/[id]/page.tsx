@@ -1,8 +1,12 @@
 import ActivityLog from "@/components/activity-log";
 import { getUser } from "@/lib/db/queries";
 
-export default async function Page({ params }: { params: { id: string } }) {
-  await params;
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  await params; // params'ı await et ama kullanma
   const user = await getUser();
   return (
     <div>

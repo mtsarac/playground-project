@@ -29,7 +29,7 @@ const passwordSchema = z
   .regex(/[0-9]/, "Password must contain at least one number")
   .regex(
     /[^A-Za-z0-9]/,
-    "Password must contain at least one special character"
+    "Password must contain at least one special character",
   );
 
 // Enhanced username validation
@@ -39,7 +39,7 @@ const usernameSchema = z
   .max(15, "Username must be less than 15 characters")
   .regex(
     /^[a-zA-Z0-9_-]+$/,
-    "Username can only contain letters, numbers, underscores, and hyphens"
+    "Username can only contain letters, numbers, underscores, and hyphens",
   )
   .transform((val) => val.toLowerCase());
 

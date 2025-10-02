@@ -8,7 +8,7 @@ export async function GET(_request: Request) {
   } catch (_error) {
     return NextResponse.json(
       { error: "Failed to fetch activities" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

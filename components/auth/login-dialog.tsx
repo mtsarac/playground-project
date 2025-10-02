@@ -68,7 +68,9 @@ export default function LoginDialog(props: LoginDialogProps) {
         setCsrfToken("");
         router.refresh();
       } else {
-        toast.error(result.error || "Login failed. Please try again.");
+        if ((result.error as string).includes("Failed query"))
+          toast.error("Login failed. Please try again.");
+        else toast.error(result.error || "Login failed. Please try again.");
       }
     } catch (error) {
       console.error("Login error:", error);
