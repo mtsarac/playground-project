@@ -10,8 +10,4 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DB_SSL === "true",
 });
-/**
- * The `db` instance provides access to the database using drizzle-orm and the defined schema.
- * Use this instance to perform queries and mutations on the PostgreSQL database.
- */
 export const db = drizzle(pool, { schema });

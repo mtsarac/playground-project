@@ -1,6 +1,5 @@
 # -----------------------------------------------------------------------------
     # This Dockerfile.bun is specifically configured for projects using Bun
-    # For npm/pnpm or yarn, refer to the Dockerfile instead
     # -----------------------------------------------------------------------------
     
     # Use Bun's official image
@@ -21,10 +20,19 @@
     
     ENV NEXT_TELEMETRY_DISABLED=1
     
+    RUN bun run build
     
-    # Build without Turbopack to avoid compatibility issues with Bun
-    RUN bun run build:prod
-    
+
+    FROM base AS migrations
+    WORKDIR /app
+    COPY package.json bun.lock* ./
+    RUN bun install --no-save --frozen-lockfile
+    # copy the full source (so drizzle.config.ts, /drizzle, /scripts etc. exist)
+    COPY . .
+    # default command is just a placeholder; compose will override it
+    CMD ["sh", "-lc", "bunx drizzle-kit generate --config=drizzle.config.ts && bun run scripts/migrate.ts"]
+
+
     # Production image, copy all the files and run next
     FROM base AS runner
     WORKDIR /app

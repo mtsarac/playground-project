@@ -1,3 +1,4 @@
+# File: .dockerignore
 Dockerfile
 .dockerignore
 node_modules
