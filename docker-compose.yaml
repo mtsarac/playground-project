@@ -18,7 +18,7 @@ services:
   db:
     image: postgres:latest
     ports:
-      - 5431:5432
+      - "5431:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: p93g*2XG*7
@@ -30,6 +30,7 @@ services:
       retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
   migrations:
     build:
       context: .
@@ -37,10 +38,13 @@ services:
       target: migrations
     environment:
       - DATABASE_URL=postgresql://postgres:p93g*2XG*7@db:5432/PlaygroundDb?schema=public
+      - DB_SSL=false
     depends_on:
       db:
         condition: service_healthy
-    command: sh -lc "bunx drizzle-kit generate && bun run scripts/migrate.ts"
+    # Only run migrator; we DO NOT generate inside the container
+    command: ["bun", "run", "scripts/migrate.ts"]
     restart: "no"
+
 volumes:
   postgres_data:
