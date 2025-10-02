@@ -19,21 +19,23 @@
     RUN bun run build
     
     # ---------- SLIM migrations runner (no devDeps, no full source) ----------
-    FROM oven/bun:latest AS migrations
+    FROM oven/bun:alpine AS migrations
     WORKDIR /app
     ENV NODE_ENV=production
-    
-    # Install **only production deps** (drizzle-orm, pg, etc.), skipping dev deps like drizzle-kit
-    COPY package.json bun.lock* ./
-    RUN bun install --production --frozen-lockfile
-    
-    # Copy just what's needed at runtime:
-    #  - compiled SQL migrations folder
-    #  - the TS migration runner (Bun runs TS natively)
+        
+    # Minimal deps just for the migrator
+    # (Pin versions to match your root package.json if you want)
+    RUN printf '%s\n' \
+    '{ "name":"migrator","type":"module",' \
+    '  "dependencies":{"drizzle-orm":"^0.44.5","pg":"^8.16.3"} }' \
+    > package.json
+    RUN bun install --frozen-lockfile
+        
     COPY drizzle ./drizzle
     COPY scripts/migrate.ts ./scripts/migrate.ts
-    
+        
     CMD ["bun", "run", "scripts/migrate.ts"]
+        
     
     # ---------- Production runner ----------
     FROM base AS runner
