@@ -1,10 +1,12 @@
 {
   "name": "playground-project",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "next build",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "scripts/migrate.ts",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write"

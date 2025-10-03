@@ -18,11 +18,6 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { loginFormSchema } from "@/lib/api-tools";
 
-// export const loginFormSchema = z.object({
-//   email: z.email(),
-//   password: z.string().min(8, "Invalid password"),
-// });
-
 export default function LoginForm() {
   const schema = loginFormSchema;
   const router = useRouter();

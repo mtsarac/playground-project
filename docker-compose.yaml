@@ -1,0 +1,49 @@
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    depends_on:
+      db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    environment:
+      - DATABASE_URL=postgresql://postgres:p93g*2XG*7@db:5432/PlaygroundDb?schema=public
+      - SESSION_SECRET=29ofpHX*x*ciuzrFw*7vCF*i4fJ%oJG37WDquLnE6nU@c2W2nkXZWC%Tn8L^kjovDmu%Jufv92*arKtx#5g@LWWBNcRht%A4q6Ks#EEGZKK#HAwyANePndQpkC!4
+    ports:
+      - "3000:3000"
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: p93g*2XG*7
+      POSTGRES_DB: PlaygroundDb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d PlaygroundDb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrations
+    environment:
+      - DATABASE_URL=postgresql://postgres:p93g*2XG*7@db:5432/PlaygroundDb?schema=public
+      - DB_SSL=false
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["bun", "run", "scripts/migrate.ts"]
+    restart: "no"
+
+volumes:
+  postgres_data:

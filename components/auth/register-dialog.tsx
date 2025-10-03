@@ -73,7 +73,10 @@ export default function RegisterDialog(props: RegisterDialogProps) {
         setCsrfToken("");
         router.refresh();
       } else {
-        toast.error(result.error || "Registration failed. Please try again.");
+        if ((result.error as string).includes("Failed query"))
+          toast.error("Registration failed. Please try again.");
+        else
+          toast.error(result.error || "Registration failed. Please try again.");
       }
     } catch (error) {
       console.error("Registration error:", error);

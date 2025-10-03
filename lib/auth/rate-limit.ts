@@ -5,7 +5,7 @@ const attempts = new Map<string, { count: number; resetTime: number }>();
 export function checkRateLimit(
   req: NextRequest,
   maxAttempts = 5,
-  windowMs = 15 * 60 * 1000
+  windowMs = 15 * 60 * 1000,
 ) {
   const ip = req.headers.get("x-forwarded-for") ?? "unknown";
   const now = Date.now();
