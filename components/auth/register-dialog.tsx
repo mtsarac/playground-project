@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { useEffect, useState, type PropsWithChildren } from "react";
+import { useState, type PropsWithChildren } from "react";
 import ReusableAuth from "./reusable-auth-form";
 import type { loginFormType, registerFormType } from "@/lib/api-tools";
 
@@ -21,38 +21,11 @@ type RegisterDialogProps = PropsWithChildren & {
 };
 
 export default function RegisterDialog(props: RegisterDialogProps) {
-  const [csrfToken, setCsrfToken] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingToken, setIsLoadingToken] = useState(false);
+  const [isLoadingToken] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    if (props.open) {
-      setIsLoadingToken(true);
-      fetch("/api/csrf-token")
-        .then((res) => res.json())
-        .then((data) => {
-          setCsrfToken(data.csrfToken);
-          setIsLoadingToken(false);
-        })
-        .catch((error) => {
-          console.error("Failed to fetch CSRF token:", error);
-          toast.error("Security initialization failed. Please try again.");
-          setIsLoadingToken(false);
-        });
-    } else {
-      setCsrfToken("");
-      setIsLoadingToken(false);
-      setIsLoading(false);
-    }
-  }, [props.open]);
-
   async function onSubmit(data: registerFormType) {
-    if (!csrfToken) {
-      toast.error("Security token missing. Please refresh and try again.");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -60,9 +33,8 @@ export default function RegisterDialog(props: RegisterDialogProps) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken,
         },
-        body: JSON.stringify({ ...data, csrfToken }),
+        body: JSON.stringify({ ...data }),
       });
 
       const result = await response.json();
@@ -70,7 +42,6 @@ export default function RegisterDialog(props: RegisterDialogProps) {
       if (response.ok) {
         toast.success("Account created successfully! Welcome aboard! 🎉");
         props.onOpenChange?.(false);
-        setCsrfToken("");
         router.refresh();
       } else {
         if ((result.error as string).includes("Failed query"))

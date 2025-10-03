@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import type { loginFormType } from "@/lib/api-tools";
 import { useRouter } from "next/navigation";
 import type { PropsWithChildren } from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -22,32 +22,10 @@ type LoginDialogProps = PropsWithChildren & {
 };
 
 export default function LoginDialog(props: LoginDialogProps) {
-  const [csrfToken, setCsrfToken] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    if (props.open) {
-      fetch("/api/csrf-token")
-        .then((res) => res.json())
-        .then((data) => setCsrfToken(data.csrfToken))
-        .catch((error) => {
-          console.error("Failed to fetch CSRF token:", error);
-          toast.error("Security initialization failed. Please try again.");
-        });
-    } else {
-      setCsrfToken("");
-      setIsLoading(false);
-    }
-  }, [props.open]);
-
-  // ✅ FIXED: Consistent async handling and loading states
   const handleSubmit = async (data: loginFormType) => {
-    if (!csrfToken) {
-      toast.error("Security token missing. Please refresh and try again.");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -55,9 +33,8 @@ export default function LoginDialog(props: LoginDialogProps) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken,
         },
-        body: JSON.stringify({ ...data, csrfToken }),
+        body: JSON.stringify({ ...data }),
       });
 
       const result = await response.json();
@@ -65,7 +42,6 @@ export default function LoginDialog(props: LoginDialogProps) {
       if (response.ok) {
         toast.success("Logged in successfully!");
         props.onOpenChange?.(false);
-        setCsrfToken("");
         router.refresh();
       } else {
         if ((result.error as string).includes("Failed query"))
