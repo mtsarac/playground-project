@@ -1,50 +1,44 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import useSWR from "swr";
+import { useCallback, useEffect, useState } from "react";
 
 type ApiTime = { serverTime: string };
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function Clock() {
-  const { data, error, isLoading } = useSWR<ApiTime>("/api/time", fetcher, {
-    revalidateOnFocus: false,
-    refreshInterval: 1000 * 60 * 10,
-  });
-
   const [time, setTime] = useState<Date | null>(null);
+  const [error, setError] = useState(false);
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fetchServerTime = useCallback(async () => {
+    try {
+      const res = await fetch("/api/time");
+      const data: ApiTime = await res.json();
+      setTime(new Date(data.serverTime));
+      setError(false);
+    } catch {
+      setError(true);
+    }
+  }, []);
 
   useEffect(() => {
-    if (!data?.serverTime) return;
-    setTime(new Date(data.serverTime));
-
-    if (!intervalRef.current) {
-      intervalRef.current = setInterval(() => {
-        setTime((prev) => (prev ? new Date(prev.getTime() + 1000) : prev));
-      }, 1000);
-    }
+    fetchServerTime();
+    const serverInterval = setInterval(fetchServerTime, 1000 * 60 * 10);
+    const tickInterval = setInterval(() => {
+      setTime((prev) => (prev ? new Date(prev.getTime() + 1000) : prev));
+    }, 1000);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+      clearInterval(serverInterval);
+      clearInterval(tickInterval);
     };
-  }, [data?.serverTime]);
+  }, [fetchServerTime]);
 
-  if (isLoading) return <div className="text-4xl">Loading...</div>;
+  if (!time && !error) return <div className="text-4xl">Loading...</div>;
   if (error) return <div className="text-4xl">Fetching error</div>;
 
   return (
     <div className="text-4xl" translate="no" suppressHydrationWarning>
       {time
         ? time.toLocaleDateString("tr-TR", {
-            // weekday: "long",
-            // day: "numeric",
-            // year: "numeric",
-            // month: "long",
             dateStyle: "long",
           })
         : null}
