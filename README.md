@@ -1,55 +1,81 @@
 # Playground-project
 
-Template for my personal projects
+Next.js 16 playground with Drizzle ORM (Neon PostgreSQL), shadcn/ui, JWT auth, and Biome.
 
-# Pre-requisites
+## Prerequisites
 
-- Node.js
-- Bun (if you prefer Bun as your package manager) or npm (default)
-- Set up a .env file:
-  - create a .env file in the root directory
-  - add the following environment variables:
-    - DATABASE_URL="your_database_url"
-    - SESSION_SECRET="your_session_secret"
+- [Bun](https://bun.sh/) (package manager and runtime)
+- [Neon](https://neon.tech/) PostgreSQL database (or any Postgres-compatible)
+- A `.env` file in the project root:
 
-# Used technologies
+```env
+DATABASE_URL="postgresql://..."
+SESSION_SECRET="<random min-32-char string>"
+DB_SSL="true"
+```
 
-- Next.js 16
-- Drizzle ORM
-- PostgreSQL
-- Tailwind CSS
-- TypeScript
-- Zod
-- React Hook Form
-- bcryptjs
-- Vercel (for deployment)
-- Bun (as package manager, optional)
-- Docker & Docker Compose (for containerization, optional)
+## Tech Stack
 
-# Getting started
+- **Next.js 16** — App Router, Turbopack
+- **Drizzle ORM** — schema, migrations, queries
+- **Neon** (PostgreSQL) — serverless Postgres
+- **shadcn/ui** — Radix primitives + Tailwind CSS v4
+- **Biome** — linting & formatting
+- **Zod** — input validation (shared between API + client)
+- **Jose** — JWT tokens
+- **Vercel** — deployment
 
-1. Clone the repository
+## Getting Started
 
-   ```bash
-   git clone https://github.com/mtsarac/playground-project.git
-   ```
+```bash
+git clone https://github.com/mtsarac/playground-project.git
+cd playground-project
+bun install
+```
 
-2. Navigate to the project directory
+### Database
 
-   ```bash
-    cd playground-project
-   ```
+Run migrations to create tables:
 
-3. Install dependencies
+```bash
+bun run db:migrate
+```
 
-   ```bash
-   bun install
-   ```
+This applies the SQL files in `drizzle/` to create `users`, `sessions`, and `user_activities` tables.
 
-4. Run the development server
+### Dev
 
-   ```bash
-   bun run dev
-   ```
+```bash
+bun run dev     # next dev --turbopack
+```
 
-5. Open your browser and go to `http://localhost:3000`
+Open [http://localhost:3000](http://localhost:3000).
+
+## Deployment (Vercel)
+
+Set these environment variables in your Vercel project dashboard:
+
+| Variable | Value |
+|----------|-------|
+| `DATABASE_URL` | Neon connection string |
+| `DB_SSL` | `true` |
+| `SESSION_SECRET` | random 32+ char string |
+
+Run migrations before deploying (or as a CI step):
+
+```bash
+DATABASE_URL="<neon-url>" bun run db:migrate
+```
+
+Then deploy normally with `git push` or `bunx vercel --prod`.
+
+## Commands
+
+| Command | Action |
+|---------|--------|
+| `bun run dev` | Start dev server (Turbopack) |
+| `bun run build` | Production build |
+| `bun run db:generate` | Generate Drizzle migration from schema |
+| `bun run db:migrate` | Apply pending migrations |
+| `bun run lint` | Biome check |
+| `bun run format` | Biome format --write |
