@@ -70,6 +70,15 @@ export async function POST(request: NextRequest) {
         ? error.message
         : String(error) || "Something went wrong";
     const statusCode = msg === "Email already in use." ? 409 : 500;
+
+    if (error instanceof Error) {
+      console.error("[REGISTER] Error:", msg);
+      console.error("[REGISTER] Stack:", error.stack);
+      console.error("[REGISTER] Cause:", error.cause);
+    } else {
+      console.error("[REGISTER] Non-Error throw:", error);
+    }
+
     return apiResponse(
       {
         error: msg,

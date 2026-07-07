@@ -62,6 +62,13 @@ export async function POST(request: NextRequest) {
     const msg = error instanceof Error ? error.message : "Something went wrong";
     const statusCode = msg === "Invalid credentials" ? 401 : 500;
 
+    if (error instanceof Error) {
+      console.error("[LOGIN] Error:", msg);
+      console.error("[LOGIN] Stack:", error.stack);
+    } else {
+      console.error("[LOGIN] Non-Error throw:", error);
+    }
+
     return apiResponse({ error: msg }, { status: statusCode });
   }
 }

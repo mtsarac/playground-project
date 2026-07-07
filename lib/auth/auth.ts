@@ -62,9 +62,12 @@ export async function register(
   ipAddress?: string,
   userAgent?: string,
 ) {
+  console.log("[register] Starting registration for:", email);
+
   const normalizedEmail = normEmail(email);
   const normalizedUsername = normUsername(username);
 
+  console.log("[register] Checking for existing user with email:", normalizedEmail);
   const existing = await db
     .select()
     .from(users)
@@ -72,32 +75,50 @@ export async function register(
     .limit(1);
 
   if (existing.length > 0) {
+    console.log("[register] Email already in use:", normalizedEmail);
     throw new Error("Email already in use.", { cause: "Duplicate mail" });
   }
 
+  console.log("[register] Hashing password...");
   const passwordHash = await hashPassword(password);
 
-  const inserted = await db
-    .insert(users)
-    .values({
-      email: normalizedEmail,
-      username: normalizedUsername,
-      passwordHash,
-    })
-    .returning();
+  console.log("[register] Inserting user into DB...");
+  try {
+    const inserted = await db
+      .insert(users)
+      .values({
+        email: normalizedEmail,
+        username: normalizedUsername,
+        passwordHash,
+      })
+      .returning();
 
-  const newUser = inserted[0];
-  if (!newUser)
+    const newUser = inserted[0];
+    if (!newUser) {
+      console.error("[register] DB insert returned no rows");
+      throw new Error("Failed to create user. Please try again.", {
+        cause: "Db error",
+      });
+    }
+
+    console.log("[register] User created with id:", newUser.id);
+    console.log("[register] Creating session...");
+    await setSessionForUserId(newUser.id);
+
+    // Log successful registration
+    console.log("[register] Logging SIGN_UP activity...");
+    await logActivity(newUser.id, ActivityType.SIGN_UP, ipAddress, userAgent);
+
+    console.log("[register] Registration complete for:", newUser.id);
+    return { id: newUser.id };
+  } catch (err) {
+    // Catch DB/insert errors specifically
+    if (err instanceof Error && err.message.startsWith("Failed to create")) throw err;
+    console.error("[register] DB operation failed:", err);
     throw new Error("Failed to create user. Please try again.", {
-      cause: "Db error",
+      cause: err instanceof Error ? err.message : String(err),
     });
-
-  await setSessionForUserId(newUser.id);
-
-  // Log successful registration
-  await logActivity(newUser.id, ActivityType.SIGN_UP, ipAddress, userAgent);
-
-  return { id: newUser.id };
+  }
 }
 const resetTokens = new Map<string, { userId: string; expires: number }>();
 
