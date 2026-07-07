@@ -14,7 +14,7 @@ Template for my personal projects
 
 # Used technologies
 
-- Next.js 15
+- Next.js 16
 - Drizzle ORM
 - PostgreSQL
 - Tailwind CSS
