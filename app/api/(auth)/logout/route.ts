@@ -8,6 +8,20 @@ import { logActivity } from "@/lib/db/queries";
 // Logs out the current user by clearing their session and logging the activity
 
 export async function POST(req: NextRequest) {
+  // CSRF: Origin/Referer check for form-based POST (sameSite lax doesn't cover cross-site POST)
+  const origin = req.headers.get("origin") ?? req.headers.get("referer");
+  if (origin) {
+    try {
+      const originHost = new URL(origin).host;
+      const host = req.headers.get("host");
+      if (originHost !== host) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    } catch {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
   // Get current session before clearing it
   const session = await readSession();
 
