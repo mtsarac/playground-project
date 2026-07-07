@@ -14,10 +14,6 @@ export const metadata: Metadata = {
   description:
     "A simple Next.js project to test and experiment with various features and functionalities.",
 };
-// export const viewport: Viewport = {
-//   maximumScale: 1,
-// };
-
 export default function RootLayout({
   children,
 }: Readonly<{
