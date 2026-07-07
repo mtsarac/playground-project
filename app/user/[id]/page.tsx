@@ -4,9 +4,9 @@ import { getUser } from "@/lib/db/queries";
 export default async function Page({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<Record<string, string>>;
 }) {
-  await params; // params'ı await et ama kullanma
+  await params;
   const user = await getUser();
   return (
     <div>
