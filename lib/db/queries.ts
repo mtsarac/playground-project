@@ -95,7 +95,7 @@ export async function logActivity(
   userId: string,
   activity: string,
   ipAddress?: string,
-  userAgent?: string
+  userAgent?: string,
 ) {
   await db.insert(userActivities).values({
     userId,
